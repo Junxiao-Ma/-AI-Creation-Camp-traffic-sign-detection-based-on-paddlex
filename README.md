@@ -1,5 +1,3 @@
-# [AI创造营]基于PaddleX实现交通路标检测
-
       本项目用paddleX实现了对交通路标的检测
 
 # 一、项目背景
@@ -159,7 +157,7 @@ network = paddle.nn.Sequential(
 # 此处需要补充目标检测模型代码
 model = pdx.det.YOLOv3(num_classes=len(train_dataset.labels), backbone='DarkNet53')
 ```
-## 3.说明模型需要的超参，然后就可以开始训练啦
+## 3.说明模型需要的超参，然后就可以开始训练啦，每训练20轮评估一次
 ```python
 # 模型训练
 # API说明: https://paddlex.readthedocs.io/zh_CN/develop/apis/models/detection.html#id1
@@ -175,136 +173,14 @@ model.train(
     lr_decay_epochs=[210, 240],
     save_dir='output/yolov3_mobilenetv1')
 ```
-
-
-
+## 4.模型预测
 ```python
-# 模型封装
-model = paddle.Model(network)
-
-# 模型可视化
-model.summary((1, 28, 28))
+model.predict( "objDataset/roadsign_voc/JPEGImages/road110.png")
 ```
 
-    ---------------------------------------------------------------------------
-     Layer (type)       Input Shape          Output Shape         Param #    
-    ===========================================================================
-       Flatten-1       [[1, 28, 28]]           [1, 784]              0       
-       Linear-1          [[1, 784]]            [1, 512]           401,920    
-        ReLU-1           [[1, 512]]            [1, 512]              0       
-       Linear-2          [[1, 512]]            [1, 10]             5,130     
-    ===========================================================================
-    Total params: 407,050
-    Trainable params: 407,050
-    Non-trainable params: 0
-    ---------------------------------------------------------------------------
-    Input size (MB): 0.00
-    Forward/backward pass size (MB): 0.01
-    Params size (MB): 1.55
-    Estimated Total Size (MB): 1.57
-    ---------------------------------------------------------------------------
+# 四、总结与升华
 
-    {'total_params': 407050, 'trainable_params': 407050}
-
-## 3.模型训练
-
-
-```python
-# 配置优化器、损失函数、评估指标
-model.prepare(paddle.optimizer.Adam(learning_rate=0.001, parameters=network.parameters()),
-              paddle.nn.CrossEntropyLoss(),
-              paddle.metric.Accuracy())
-              
-# 启动模型全流程训练
-model.fit(train_dataset,  # 训练数据集
-          eval_dataset,   # 评估数据集
-          epochs=5,       # 训练的总轮次
-          batch_size=64,  # 训练使用的批大小
-          verbose=1)      # 日志展示形式
-```
-
-    The loss value printed in the log is the current step, and the metric is the average value of previous step.
-    Epoch 1/5
-    step 938/938 [==============================] - loss: 0.0325 - acc: 0.9902 - 7ms/step           
-    Eval begin...
-    The loss value printed in the log is the current batch, and the metric is the average value of previous step.
-    step 157/157 [==============================] - loss: 7.0694e-04 - acc: 0.9807 - 6ms/step     
-    Eval samples: 10000
-    
-
-
-## 4.模型评估测试
-
-
-```python
-# 模型评估，根据prepare接口配置的loss和metric进行返回
-result = model.evaluate(eval_dataset, verbose=1)
-
-print(result)
-```
-
-    Eval begin...
-    The loss value printed in the log is the current batch, and the metric is the average value of previous step.
-    step 10000/10000 [==============================] - loss: 0.0000e+00 - acc: 0.9795 - 2ms/step         
-    Eval samples: 10000
-    {'loss': [0.0], 'acc': 0.9795}
-
-
-## 5.模型预测
-
-### 5.1 批量预测
-
-使用model.predict接口来完成对大量数据集的批量预测。
-
-
-```python
-# 进行预测操作
-result = model.predict(eval_dataset)
-
-# 定义画图方法
-def show_img(img, predict):
-    plt.figure()
-    plt.title('predict: {}'.format(predict))
-    plt.imshow(img.reshape([28, 28]), cmap=plt.cm.binary)
-    plt.show()
-
-# 抽样展示
-indexs = [2, 15, 38, 211]
-
-for idx in indexs:
-    show_img(eval_dataset[idx][0], np.argmax(result[0][idx]))
-```
-
-    Predict begin...
-    step 10000/10000 [==============================] - 1ms/step        
-    Predict samples: 10000
-
-
-### 5.2 单张图片预测
-
-采用model.predict_batch来进行单张或少量多张图片的预测。
-
-
-```python
-# 读取单张图片
-image = eval_dataset[501][0]
-
-# 单张图片预测
-result = model.predict_batch([image])
-
-# 可视化结果
-show_img(image, np.argmax(result))
-```
-
-# 四、效果展示
-
-说明你的项目应该如何去运行。
-
-并简单说明你的项目取得了哪些成果，效果如何。最好附上图片。
-
-# 五、总结与升华
-
-本项目在模型预测和评估方面还没有完成，16日完成之前会更新
+本项目bbox值目前较低，在调参中，调好之后会发布
 
 # 个人简介
 
